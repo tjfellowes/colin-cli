@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 from pint import UnitRegistry
 from PIL import Image,ImageDraw,ImageFont
 
-host = 'localhost'
+host = 'fellonet.com'
 port = '9292'
 
 hostport = host + ':' + port
