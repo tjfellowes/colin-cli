@@ -6,7 +6,7 @@ from prettytable import PrettyTable
 from pint import UnitRegistry
 from PIL import Image,ImageDraw,ImageFont
 
-host = 'fellonet.com'
+host = 'localhost'
 port = '9292'
 
 hostport = host + ':' + port
@@ -317,6 +317,28 @@ def reprintLabel():
   printLabel(labels)
   pass
 
+def reprintLabelByLoc():
+  click.clear()
+  location = click.prompt('Enter the location to print labels for')
+
+  if location in loc:
+    location_id = loc[location]
+    response = requests.get('http://' + hostport + '/api/container/location_id/' + location_id).json()
+    labels = []
+
+    for row in response:
+      fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
+      location =  str(response[0]['storage_location']['location'].get('parent', {}).get('name', '')) + ' ' + str(response[0]['storage_location']
+      ['location']['name'])
+      serial_number = row['serial_number']
+      labels.append(createLabel(serial_number,fulltext_name,location))
+
+    #labels[0].show()
+    printLabel(labels)
+    pass
+  else:
+    click.echo("I didn't recognise that location")
+
 def stocktake():
   click.clear()
   click.echo("Stocktake mode allows you to specify a location, then scan the chemicals in that location. All chemicals that were previously in that location will be marked as lost.")
@@ -357,23 +379,23 @@ def stocktake():
 
 @click.command()
 def colin():
-  t = PrettyTable()
-  t.field_names = ["Name", "DG Class", "Size", "Location"]
 
   ureg = UnitRegistry()
   ureg.define('None = 0')
 
   while True:
     click.clear()
-    click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number.')
-    click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake')
+    click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number. CTRL + H for help.')
     click.echo('\nSearch:')
     c = ''
     query = ''
     while query[-1:] != '\r':
       c = click.getchar()
+      click.clear()
       if c == '\x7f':
         query = query[:-1]
+      elif c == '\x08':
+        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + L: Reprint labels for location, CTRL + S: Stocktake')
       elif c == '\x0e':
         createChemical()
       elif c == '\x12':
@@ -382,6 +404,8 @@ def colin():
         updateLocation()
       elif c == '\x10':
         reprintLabel()
+      elif c == '\x0c':
+        reprintLabelByLoc()
       elif c == '\x13':
         stocktake()
       elif c in ['\x1b[A', '\x1b[B', '\x1b[C', '\x1b[D']:
@@ -389,21 +413,17 @@ def colin():
       else:
         query = query + c
 
-      click.clear()
-      click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number.')
-      click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake')
+      click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number. CTRL + H for help.')
       click.echo('\nSearch: ' + query)
 
       if len(query) > 5 and query[-1:] != '\r':
         try:
           response = requests.get('http://' + hostport + '/api/search/container/' + query + '?live=true').json()
-          t.clear_rows()
+          t = PrettyTable()
+          t.field_names = ["Name"]
           for row in response:
             t.add_row([
-            row['chemical']['prefix'] + row['chemical']['name'][0:45],
-            row['chemical'].get('dg_class', {}).get('description', ''),
-            '{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
-            ''
+            row['chemical']['prefix'] + row['chemical']['name'][0:45]
             ])
           click.echo(t)
         except:
@@ -412,11 +432,14 @@ def colin():
       elif query[-1:] == '\r' and len(query) > 2:
         try:
           response = requests.get('http://' + hostport + '/api/search/container/' + query[:-1] + '?live=false').json()
-          t.clear_rows()
+          t = PrettyTable()
+          t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location"]
           for row in response:
             location = str(row['storage_location'].get('location', {}).get('parent', {}).get('name', '')) + ' ' + str(row['storage_location'].get('location', {}).get('name', ''))
             t.add_row([
-            row['chemical']['prefix'] + row['chemical']['name'][0:45],
+              row['serial_number'],
+              row['chemical']['cas'],
+              row['chemical']['prefix'] + row['chemical']['name'][0:45],
               row['chemical'].get('dg_class', {}).get('description', ''),
               '{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
               location
