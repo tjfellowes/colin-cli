@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os,io,click,requests,time,pint,uuid,barcode,code128,textwrap
+import os,io,click,requests,time,pint,uuid,barcode,textwrap
 from prettytable import PrettyTable
 from pint import UnitRegistry
 from PIL import Image,ImageDraw,ImageFont
@@ -183,11 +183,16 @@ loc = {
 def createLabel(serial_number, fulltext_name, location):
   fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 25)
 
-  barcode_image = code128.image(serial_number).resize((280,80))
+  #code128 = barcode.get_barcode_class('code128')
+
+  #barcode_image = code128(serial_number)
+
+  code128 = barcode.get('code128', serial_number, writer = barcode.writer.ImageWriter())
+  barcode_image = code128.render().resize((300,120)).crop((0,0,300,80))
   print(barcode_image)
 
   label = Image.new('1', (696,120), color=1)
-  label.paste(barcode_image, box=(10,10))
+  label.paste(barcode_image, box=(0,0))
 
   #fulltext_name = "bepis"
   #location = "conke"
@@ -217,12 +222,8 @@ def printLabel(image):
   printer = 'usb://0x04f9:0x2028/C7Z863490'
 
   qlr = BrotherQLRaster(model)
-  print('blep')
   convert(qlr, image, '62')
-  print('blop')
   send(instructions = qlr.data, printer_identifier = printer, backend_identifier = backend, blocking=True)
-  print('slep')
-  time.sleep(10)
   pass
 
 def createChemical():
@@ -232,6 +233,16 @@ def createChemical():
   if response.status_code == 200:
     chemical = response.json()
     click.echo('Good news! We already have some ' + chemical[0]['prefix'] + chemical[0]['name'])
+    cas = chemical[0]['cas']
+    prefix = chemical[0].get('prefix','')
+    name = chemical[0]['name']
+    haz_substance = chemical[0]['haz_substance']
+    dg_class_id = chemical[0].get('dg_class_id','')
+    dg_class_2_id = chemical[0].get('dg_class_2_id','')
+    dg_class_3_id = chemical[0].get('dg_class_3_id','')
+    packing_group_id = chemical[0].get('packing_group_id','')
+    un_number = chemical[0].get('un_number','')
+    schedule_id = chemical[0].get('schedule_id','')
   elif response.status_code == 404:
     click.echo("Looks like we don't have any of that. We'll need some more information")
     prefix = click.prompt('What is the prefix of the chemical (if applicable)', default='')
@@ -270,16 +281,15 @@ def createChemical():
   location_id = loc[location]
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/create/container?cas=" + cas + "&prefix=" + prefix + "&name=" + name + "&dg_class_id=" + dg_class_id + "&dg_class_2_id=" + dg_class_2_id + "dg_class_3_id=" + dg_class_3_id + "&schedule_id=" + schedule_id + "&packing_group_id=" + \
-        packing_group_id + "&un_number=" + un_number + "&haz_substance=" + haz_substance + "&serial_number=" + serial_number + \
-          "&container_size=" + container_size + "&size_unit=" + size_unit + \
-        "&supplier_id=" + supplier_id + "&location_id=" + location_id
+    url = "http://" + hostport + "/api/create/container?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&serial_number=" + str(serial_number) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier_id=" + str(supplier_id) + "&location_id=" + str(location_id)
     requests.get(url)
 
     fulltext_name = prefix + name
 
     labels = [createLabel(serial_number,fulltext_name,location)]
     printLabel(labels)
+    click.clear()
+
   pass
 
 def removeChemical():
