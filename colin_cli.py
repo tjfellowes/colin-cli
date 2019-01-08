@@ -183,19 +183,11 @@ loc = {
 def createLabel(serial_number, fulltext_name, location):
   fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 25)
 
-  #code128 = barcode.get_barcode_class('code128')
-
-  #barcode_image = code128(serial_number)
-
   code128 = barcode.get('code128', serial_number, writer = barcode.writer.ImageWriter())
   barcode_image = code128.render().resize((300,120)).crop((0,0,300,80))
-  print(barcode_image)
 
   label = Image.new('1', (696,120), color=1)
   label.paste(barcode_image, box=(0,0))
-
-  #fulltext_name = "bepis"
-  #location = "conke"
 
   lines = textwrap.wrap(fulltext_name[:75], width = 25)
   y_text=5
@@ -217,13 +209,19 @@ def printLabel(image):
   from brother_ql.conversion import convert
   from brother_ql.backends.helpers import send
 
-  backend = 'pyusb'
-  model = 'QL-570'
-  printer = 'usb://0x04f9:0x2028/C7Z863490'
+  send_to_printer = False
 
-  qlr = BrotherQLRaster(model)
-  convert(qlr, image, '62')
-  send(instructions = qlr.data, printer_identifier = printer, backend_identifier = backend, blocking=True)
+  if send_to_printer:
+    backend = 'pyusb'
+    model = 'QL-570'
+    printer = 'usb://0x04f9:0x2028/C7Z863490'
+
+    qlr = BrotherQLRaster(model)
+    convert(qlr, image, '62')
+    send(instructions = qlr.data, printer_identifier = printer, backend_identifier = backend, blocking=True)
+  else:
+    for i in image:
+      i.show()
   pass
 
 def createChemical():
@@ -320,7 +318,7 @@ def reprintLabel():
   response = requests.get('http://' + hostport + '/api/container/' + serial_number).json()
 
   fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
-  location =  str(response[0]['storage_location']['location'].get('parent', {}).get('name', '')) + ' ' + str(response[0]['storage_location']['location']['name'])
+  location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
   labels = [createLabel(serial_number,fulltext_name,location)]
 
   #labels[0].show()
@@ -338,8 +336,7 @@ def reprintLabelByLoc():
 
     for row in response:
       fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
-      location =  str(response[0]['storage_location']['location'].get('parent', {}).get('name', '')) + ' ' + str(response[0]['storage_location']
-      ['location']['name'])
+      location = str(response[0]['location'][-1].get('parent', {}).get('name', '')) + ' ' + str(response[0]['location'][-1].get('name', ''))
       serial_number = row['serial_number']
       labels.append(createLabel(serial_number,fulltext_name,location))
 
@@ -359,7 +356,8 @@ def stocktake():
     response = requests.get('http://' + hostport + '/api/container/location_id/' + location_id).json()
 
     for row in response:
-      requests.get('http://' + hostport + '/api/update/container/' + row['serial_number'] + '?location_id=&temp=false')
+      if row['location'][-1]['id'] == location_id:
+        requests.get('http://' + hostport + '/api/update/container/' + row['serial_number'] + '?location_id=&temp=false')
 
     serial_number = ''
     while serial_number != 'quit':
@@ -368,18 +366,19 @@ def stocktake():
     click.echo("Quitting stocktake mode...")
     time.sleep(1)
 
-    click.echo("The following chemicals are lost. Delete them?")
-
     response = requests.get('http://' + hostport + '/api/container/location_id/0').json()
     t = PrettyTable()
     t.field_names = ["Name"]
     for row in response:
-      t.add_row([
-      row['chemical']['prefix'] + row['chemical']['name'][0:45]
-      ])
-    if click.confirm(t):
+      if row['location'][-1]['id'] == '':
+        t.add_row([
+        row['chemical']['prefix'] + row['chemical']['name'][0:45]
+        ])
+    click.echo(t)
+    if click.confirm("These chemicals are lost. Delete them?"):
       for row in response:
-        requests.get('http://' + hostport + '/api/delete/container/' + row['serial_number'])
+        if row['location'][-1]['id'] == '':
+          requests.get('http://' + hostport + '/api/delete/container/' + row['serial_number'])
 
   else:
     click.echo("There doesn't seem to be a location with that name.")
@@ -445,7 +444,9 @@ def colin():
           t = PrettyTable()
           t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location"]
           for row in response:
-            location = str(row['storage_location'].get('location', {}).get('parent', {}).get('name', '')) + ' ' + str(row['storage_location'].get('location', {}).get('name', ''))
+            try:
+              location = ' '.join([str(row['location'][-1].get('parent', {}).get('name', '')), str(row['location'][-1].get('name', ''))])
+            except: location = ''
             t.add_row([
               row['serial_number'],
               row['chemical']['cas'],
