@@ -25,6 +25,7 @@ sched = {
   "1": "",
   "2": "2",
   "4": "3",
+  "6": "6",
   "7": "7",
   "-": "",
   "": ""
@@ -209,7 +210,7 @@ def printLabel(image):
   from brother_ql.conversion import convert
   from brother_ql.backends.helpers import send
 
-  send_to_printer = False
+  send_to_printer = True
 
   if send_to_printer:
     backend = 'pyusb'
@@ -218,7 +219,10 @@ def printLabel(image):
 
     qlr = BrotherQLRaster(model)
     convert(qlr, image, '62')
-    send(instructions = qlr.data, printer_identifier = printer, backend_identifier = backend, blocking=True)
+    try:
+      send(instructions = qlr.data, printer_identifier = printer, backend_identifier = backend, blocking=True)
+    except:
+      click.echo("Printer not connected")
   else:
     for i in image:
       i.show()
@@ -306,6 +310,14 @@ def updateLocation():
     location_id = loc[location]
     requests.get('http://' + hostport + '/api/update/container/' + serial_number + '?location_id=' + location_id + '&temp=false')
     click.echo("Location updated!")
+
+    response = requests.get('http://' + hostport + '/api/container/' + serial_number).json()
+
+    fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
+    location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
+    labels = [createLabel(serial_number,fulltext_name,location)]
+    #labels[0].show()
+    printLabel(labels)
   except:
     click.echo("There doesn't seem to be a location with that name.")
   time.sleep(1)
@@ -332,16 +344,13 @@ def reprintLabelByLoc():
   if location in loc:
     location_id = loc[location]
     response = requests.get('http://' + hostport + '/api/container/location_id/' + location_id).json()
-    labels = []
 
     for row in response:
-      fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
-      location = str(response[0]['location'][-1].get('parent', {}).get('name', '')) + ' ' + str(response[0]['location'][-1].get('name', ''))
+      fulltext_name = row['chemical']['prefix'] + row['chemical']['name']
+      location = ' '.join([str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(row['container_location'][-1].get('location', {}).get('name', ''))])
       serial_number = row['serial_number']
-      labels.append(createLabel(serial_number,fulltext_name,location))
-
-    #labels[0].show()
-    printLabel(labels)
+      labels = [createLabel(serial_number,fulltext_name,location)]
+      printLabel(labels)
     pass
   else:
     click.echo("I didn't recognise that location")
@@ -356,8 +365,7 @@ def stocktake():
     response = requests.get('http://' + hostport + '/api/container/location_id/' + location_id).json()
 
     for row in response:
-      if row['location'][-1]['id'] == location_id:
-        requests.get('http://' + hostport + '/api/update/container/' + row['serial_number'] + '?location_id=&temp=false')
+      requests.get('http://' + hostport + '/api/update/container/' + row['serial_number'] + '?location_id=&temp=false')
 
     serial_number = ''
     while serial_number != 'quit':
@@ -370,20 +378,18 @@ def stocktake():
     t = PrettyTable()
     t.field_names = ["Name"]
     for row in response:
-      if row['location'][-1]['id'] == '':
-        t.add_row([
-        row['chemical']['prefix'] + row['chemical']['name'][0:45]
-        ])
+      t.add_row([
+      row['chemical']['prefix'] + row['chemical']['name'][0:45]
+      ])
     click.echo(t)
     if click.confirm("These chemicals are lost. Delete them?"):
       for row in response:
-        if row['location'][-1]['id'] == '':
-          requests.get('http://' + hostport + '/api/delete/container/' + row['serial_number'])
-
+        requests.get('http://' + hostport + '/api/delete/container/' + row['serial_number'])
   else:
     click.echo("There doesn't seem to be a location with that name.")
     time.sleep(1)
     pass
+  click.clear()
   pass
 
 @click.command()
@@ -444,9 +450,7 @@ def colin():
           t = PrettyTable()
           t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location"]
           for row in response:
-            try:
-              location = ' '.join([str(row['location'][-1].get('parent', {}).get('name', '')), str(row['location'][-1].get('name', ''))])
-            except: location = ''
+            location = ' '.join([str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(row['container_location'][-1].get('location', {}).get('name', ''))])
             t.add_row([
               row['serial_number'],
               row['chemical']['cas'],
