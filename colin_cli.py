@@ -273,7 +273,7 @@ def createChemical():
   container_size_string = click.prompt('What is the container size?')
   location = click.prompt('Where will this chemical be stored?')
   while location not in loc:
-    location = click.prompt("I didn't recognise that location. Try again")
+    location = click.prompt("I am old and hard of hearing. Try entering that again")
   supplier = click.prompt('Who is the supplier of this chemical?')
   serial_number = click.prompt('The serial number for this container is', default = str(uuid.uuid1().int)[:12])
 
@@ -283,7 +283,7 @@ def createChemical():
   location_id = loc[location]
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/create/container?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&serial_number=" + str(serial_number) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier_id=" + str(supplier_id) + "&location_id=" + str(location_id)
+    url = "http://" + hostport + "/api/create/container?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&serial_number=" + str(serial_number) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier_id=" + str(supplier_id) + "&location_id=" + str(location_id) + "&location=" + str(location) + "&supplier=" + str(supplier)
     requests.get(url)
 
     fulltext_name = prefix + name
@@ -445,24 +445,28 @@ def colin():
           pass
 
       elif query[-1:] == '\r' and len(query) > 2:
-        try:
+#        try:
           response = requests.get('http://' + hostport + '/api/search/container/' + query[:-1] + '?live=false').json()
           t = PrettyTable()
-          t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location"]
+          t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location", "Supplier"]
           for row in response:
-            location = ' '.join([str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(row['container_location'][-1].get('location', {}).get('name', ''))])
+            parent_loc = str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', ''))
+            cont_loc = str(row['container_location'][-1].get('location', {}).get('name', ''))
+            location = ' '.join([parent_loc, cont_loc])
             t.add_row([
               row['serial_number'],
               row['chemical']['cas'],
               row['chemical']['prefix'] + row['chemical']['name'][0:45],
               row['chemical'].get('dg_class', {}).get('description', ''),
-              '{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
-              location
+              #'{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
+              ureg(str(row['container_size']) + ' ' + str(row['size_unit'])),
+              location,
+              row['supplier']['name']
             ])
           click.echo(t)
           click.pause()
-        except:
-          pass
+#        except:
+#          pass
 
 if __name__ == '__main__':
     colin()
