@@ -283,7 +283,7 @@ def createChemical():
   location_id = loc[location]
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/create/container?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&serial_number=" + str(serial_number) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier_id=" + str(supplier_id) + "&location_id=" + str(location_id) + "&location=" + str(location) + "&supplier=" + str(supplier)
+    url = "http://" + hostport + "/api/container/create?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&serial_number=" + str(serial_number) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier_id=" + str(supplier_id) + "&location_id=" + str(location_id) + "&location=" + str(location) + "&supplier=" + str(supplier)
     requests.get(url)
 
     fulltext_name = prefix + name
@@ -297,7 +297,7 @@ def createChemical():
 def removeChemical():
   click.clear()
   serial_number = click.prompt('Please enter the serial number of the chemical to be deleted')
-  requests.get('http://' + hostport + '/api/delete/container/' + serial_number)
+  requests.get('http://' + hostport + '/api/container/delete/' + serial_number)
   click.echo("Chemical deleted!")
   time.sleep(1)
   pass
@@ -308,7 +308,7 @@ def updateLocation():
   location = click.prompt('Please enter the new location')
   try:
     location_id = loc[location]
-    requests.get('http://' + hostport + '/api/update/container/' + serial_number + '?location_id=' + location_id + '&temp=false')
+    requests.get('http://' + hostport + '/api/container/update/' + serial_number + '?location_id=' + location_id + '&temp=false')
     click.echo("Location updated!")
 
     response = requests.get('http://' + hostport + '/api/container/' + serial_number).json()
@@ -365,12 +365,12 @@ def stocktake():
     response = requests.get('http://' + hostport + '/api/container/location_id/' + location_id).json()
 
     for row in response:
-      requests.get('http://' + hostport + '/api/update/container/' + row['serial_number'] + '?location_id=&temp=false')
+      requests.get('http://' + hostport + '/api/container/update/' + row['serial_number'] + '?location_id=&temp=false')
 
     serial_number = ''
     while serial_number != 'quit':
       serial_number = click.prompt("Enter serial number ('quit' to exit stocktake mode)")
-      requests.get('http://' + hostport + '/api/update/container/' + serial_number + '?location_id=' + location_id + '&temp=false')
+      requests.get('http://' + hostport + '/api/container/update/' + serial_number + '?location_id=' + location_id + '&temp=false')
     click.echo("Quitting stocktake mode...")
     time.sleep(1)
 
@@ -384,7 +384,7 @@ def stocktake():
     click.echo(t)
     if click.confirm("These chemicals are lost. Delete them?"):
       for row in response:
-        requests.get('http://' + hostport + '/api/delete/container/' + row['serial_number'])
+        requests.get('http://' + hostport + '/api/container/delete/' + row['serial_number'])
   else:
     click.echo("There doesn't seem to be a location with that name.")
     time.sleep(1)
@@ -433,7 +433,7 @@ def colin():
 
       if len(query) > 5 and query[-1:] != '\r':
         try:
-          response = requests.get('http://' + hostport + '/api/search/container/' + query + '?live=true').json()
+          response = requests.get('http://' + hostport + '/api/container/search/' + query + '?live=true').json()
           t = PrettyTable()
           t.field_names = ["Name"]
           for row in response:
@@ -446,7 +446,7 @@ def colin():
 
       elif query[-1:] == '\r' and len(query) > 2:
 #        try:
-          response = requests.get('http://' + hostport + '/api/search/container/' + query[:-1] + '?live=false').json()
+          response = requests.get('http://' + hostport + '/api/container/search/' + query[:-1] + '?live=false').json()
           t = PrettyTable()
           t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location", "Supplier"]
           for row in response:
