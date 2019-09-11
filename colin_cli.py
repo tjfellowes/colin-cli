@@ -223,6 +223,7 @@ def printLabel(image):
       send(instructions = qlr.data, printer_identifier = printer, backend_identifier = backend, blocking=True)
     except:
       click.echo("Printer not connected")
+      time.sleep(2)
   else:
     for i in image:
       i.show()
@@ -231,7 +232,11 @@ def printLabel(image):
 def createChemical():
   click.clear()
   cas = click.prompt('Please enter the CAS number for the new chemical. I will see if we already have some')
-  response = requests.get('http://' + hostport + '/api/chemical/' + cas)
+  try:
+    response = requests.get('http://' + hostport + '/api/chemical/' + cas)
+  except:
+    click.echo('There seems to be a problem talking to the database...')
+    return 0
   if response.status_code == 200:
     chemical = response.json()
     click.echo('Good news! We already have some ' + chemical[0]['prefix'] + chemical[0]['name'])
@@ -266,78 +271,87 @@ def createChemical():
     dg_class_3_id = dg[dg_class[2]]
     packing_group_id = pg[packing_group]
     schedule_id = sched[schedule]
-  else:
-    click.echo('There seems to be a problem talking to the database...')
-    return 0
+
 
   container_size_string = click.prompt('What is the container size?')
   location = click.prompt('Where will this chemical be stored?')
-  while location not in loc:
-    location = click.prompt("I am old and hard of hearing. Try entering that again")
   supplier = click.prompt('Who is the supplier of this chemical?')
   serial_number = click.prompt('The serial number for this container is', default = str(uuid.uuid1().int)[:12])
 
   container_size = str(ureg(container_size_string).magnitude)
   size_unit = str(ureg(container_size_string).units)
-  supplier_id = '0'
-  location_id = loc[location]
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/container/create?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&serial_number=" + str(serial_number) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier_id=" + str(supplier_id) + "&location_id=" + str(location_id) + "&location=" + str(location) + "&supplier=" + str(supplier)
-    requests.get(url)
+    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier)
+    try:
+      requests.post(url)
+    except:
+      click.echo('There seems to be a problem talking to the database. Chemical was not created. HRUMPH.')
+      time.sleep(2)
+      return 0
 
     fulltext_name = prefix + name
 
     labels = [createLabel(serial_number,fulltext_name,location)]
     printLabel(labels)
     click.clear()
-
   pass
 
 def removeChemical():
   click.clear()
   serial_number = click.prompt('Please enter the serial number of the chemical to be deleted')
-  requests.get('http://' + hostport + '/api/container/delete/' + serial_number)
-  click.echo("Chemical deleted!")
+  try:
+    requests.delete('http://' + hostport + '/api/container/serial/' + serial_number)
+    click.echo("Chemical deleted!")
+  except:
+    click.echo('There seems to be a problem talking to the database...')
   time.sleep(1)
+  click.clear()
   pass
 
 def updateLocation():
   click.clear()
   serial_number = click.prompt('Please enter the serial number of the chemical to be updated')
   location = click.prompt('Please enter the new location')
+  #location_id = loc[location]
   try:
-    location_id = loc[location]
-    requests.get('http://' + hostport + '/api/container/update/' + serial_number + '?location_id=' + location_id + '&temp=false')
-    click.echo("Location updated!")
-
-    response = requests.get('http://' + hostport + '/api/container/' + serial_number).json()
-
-    fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
-    location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
-    labels = [createLabel(serial_number,fulltext_name,location)]
-    #labels[0].show()
-    printLabel(labels)
+    requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false')
   except:
-    click.echo("There doesn't seem to be a location with that name.")
+    click.echo('There seems to be a problem talking to the database...')
+
+  #Reprint the label
+  try:
+    response = requests.get('http://' + hostport + '/api/container/serial/' + serial_number).json()
+  except:
+    click.echo('There seems to be a problem talking to the database...')
+  fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
+  location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
+  labels = [createLabel(serial_number,fulltext_name,location)]
+  printLabel(labels)
+  click.echo("Location updated!")
   time.sleep(1)
+  click.clear()
   pass
 
 def reprintLabel():
   click.clear()
   serial_number = click.prompt('Enter the serial number of the chemical you wish to reprint the label for')
 
-  response = requests.get('http://' + hostport + '/api/container/' + serial_number).json()
+  try:
+    response = requests.get('http://' + hostport + '/api/container/serial/' + serial_number).json()
+  except:
+    click.echo('There seems to be a problem talking to the database...')
 
   fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
   location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
   labels = [createLabel(serial_number,fulltext_name,location)]
 
-  #labels[0].show()
   printLabel(labels)
+  click.clear()
   pass
 
-def reprintLabelByLoc():
+#This has been deprecated
+""" def reprintLabelByLoc():
   click.clear()
   location = click.prompt('Enter the location to print labels for')
 
@@ -353,42 +367,35 @@ def reprintLabelByLoc():
       printLabel(labels)
     pass
   else:
-    click.echo("I didn't recognise that location")
+    click.echo("I didn't recognise that location") """
 
 def stocktake():
   click.clear()
   click.echo("Stocktake mode allows you to specify a location, then scan the chemicals in that location. All chemicals that were previously in that location will be marked as lost.")
   location = click.prompt('Please enter the location to stocktake')
-  if location in loc:
-    location_id = loc[location]
+  response = requests.get('http://' + hostport + '/api/container/location/' + location).json()
 
-    response = requests.get('http://' + hostport + '/api/container/location_id/' + location_id).json()
+  for row in response:
+    requests.put('http://' + hostport + '/api/container/serial/' + row['serial_number'] + '?location=Missing&temp=false')
 
+  serial_number = ''
+  while serial_number != 'quit':
+    serial_number = click.prompt("Enter serial number ('quit' to exit stocktake mode)")
+    requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false')
+  click.echo("Quitting stocktake mode...")
+  time.sleep(1)
+
+  response = requests.get('http://' + hostport + '/api/container/location/Missing').json()
+  t = PrettyTable()
+  t.field_names = ["Name"]
+  for row in response:
+    t.add_row([
+    row['chemical']['prefix'] + row['chemical']['name'][0:45]
+    ])
+  click.echo(t)
+  if click.confirm("These chemicals are missing. Delete them?"):
     for row in response:
-      requests.get('http://' + hostport + '/api/container/update/' + row['serial_number'] + '?location_id=&temp=false')
-
-    serial_number = ''
-    while serial_number != 'quit':
-      serial_number = click.prompt("Enter serial number ('quit' to exit stocktake mode)")
-      requests.get('http://' + hostport + '/api/container/update/' + serial_number + '?location_id=' + location_id + '&temp=false')
-    click.echo("Quitting stocktake mode...")
-    time.sleep(1)
-
-    response = requests.get('http://' + hostport + '/api/container/location_id/0').json()
-    t = PrettyTable()
-    t.field_names = ["Name"]
-    for row in response:
-      t.add_row([
-      row['chemical']['prefix'] + row['chemical']['name'][0:45]
-      ])
-    click.echo(t)
-    if click.confirm("These chemicals are lost. Delete them?"):
-      for row in response:
-        requests.get('http://' + hostport + '/api/container/delete/' + row['serial_number'])
-  else:
-    click.echo("There doesn't seem to be a location with that name.")
-    time.sleep(1)
-    pass
+      requests.delete('http://' + hostport + '/api/container/serial/' + row['serial_number'])
   click.clear()
   pass
 
@@ -410,7 +417,7 @@ def colin():
       if c == '\x7f':
         query = query[:-1]
       elif c == '\x08':
-        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + L: Reprint labels for location, CTRL + S: Stocktake')
+        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake')
       elif c == '\x0e':
         createChemical()
       elif c == '\x12':
@@ -419,8 +426,8 @@ def colin():
         updateLocation()
       elif c == '\x10':
         reprintLabel()
-      elif c == '\x0c':
-        reprintLabelByLoc()
+      # elif c == '\x0c':
+      #   reprintLabelByLoc()
       elif c == '\x13':
         stocktake()
       elif c in ['\x1b[A', '\x1b[B', '\x1b[C', '\x1b[D']:
