@@ -461,7 +461,7 @@ def colin():
               #'{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
               ureg(str(row['container_size']) + ' ' + str(row['size_unit'])),
               location,
-              row['supplier']['name']
+              row.get('supplier', {}).get('name', '')
             ])
           click.echo(t)
           click.pause()
