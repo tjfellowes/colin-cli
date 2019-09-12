@@ -398,7 +398,8 @@ def stocktake():
   serial_number = ''
   while serial_number != 'quit':
     serial_number = click.prompt("Enter serial number ('quit' to exit stocktake mode)")
-    requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false')
+    response = requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false').json()
+    click.echo(response[0]['chemical']['name_fulltext'])
   click.echo("Quitting stocktake mode...")
   time.sleep(1)
 
@@ -462,7 +463,7 @@ def colin():
       click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number. CTRL + H for help.')
       click.echo('\nSearch: ' + query)
 
-      if len(query) > 5 and query[-1:] != '\r':
+      if len(query) > 13 and query[-1:] != '\r':
         try:
           response = requests.get('http://' + hostport + '/api/container/search/' + query + '?live=true').json()
           t = PrettyTable()
