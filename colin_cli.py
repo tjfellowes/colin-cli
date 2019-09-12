@@ -376,6 +376,16 @@ def setHost():
   hostport = host + ':' + port
   click.clear()
 
+def codeLocation():
+  click.clear()
+  location = click.prompt('Please enter the full name of the location')
+  code = click.prompt('Please enter the shorthand code')
+  try:
+    requests.put('http://' + hostport + '/api/location/' + location + '?code=' + code )
+  except:
+    click.echo('There seems to be a problem talking to the database...')
+  click.clear()
+
 def stocktake():
   click.clear()
   click.echo("Stocktake mode allows you to specify a location, then scan the chemicals in that location. All chemicals that were previously in that location will be marked as lost.")
@@ -435,7 +445,11 @@ def colin():
       elif c == '\x10':
         reprintLabel()
       elif c == '\x14':
+        #CTRL T
         setHost()
+      elif c == '\x0f':
+        #CTRL O
+        codeLocation()
       # elif c == '\x0c':
       #   reprintLabelByLoc()
       elif c == '\x13':
