@@ -369,6 +369,13 @@ def reprintLabel():
   else:
     click.echo("I didn't recognise that location") """
 
+def setHost():
+  click.clear()
+  global hostport
+  host = click.prompt("Please enter the IP address or hostname of the server")
+  hostport = host + ':' + port
+  click.clear()
+
 def stocktake():
   click.clear()
   click.echo("Stocktake mode allows you to specify a location, then scan the chemicals in that location. All chemicals that were previously in that location will be marked as lost.")
@@ -408,6 +415,7 @@ def colin():
   while True:
     click.clear()
     click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number. CTRL + H for help.')
+    print(hostport)
     click.echo('\nSearch:')
     c = ''
     query = ''
@@ -417,7 +425,7 @@ def colin():
       if c == '\x7f':
         query = query[:-1]
       elif c == '\x08':
-        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake')
+        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + T: Connect to a different CoLIn server')
       elif c == '\x0e':
         createChemical()
       elif c == '\x12':
@@ -426,6 +434,8 @@ def colin():
         updateLocation()
       elif c == '\x10':
         reprintLabel()
+      elif c == '\x14':
+        setHost()
       # elif c == '\x0c':
       #   reprintLabelByLoc()
       elif c == '\x13':
@@ -452,7 +462,7 @@ def colin():
           pass
 
       elif query[-1:] == '\r' and len(query) > 2:
-#        try:
+        try:
           response = requests.get('http://' + hostport + '/api/container/search/' + query[:-1] + '?live=false').json()
           t = PrettyTable()
           t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location", "Supplier"]
@@ -472,8 +482,8 @@ def colin():
             ])
           click.echo(t)
           click.pause()
-#        except:
-#          pass
+        except:
+          pass
 
 if __name__ == '__main__':
     colin()
