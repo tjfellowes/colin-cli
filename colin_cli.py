@@ -202,6 +202,9 @@ def createLabel(serial_number, fulltext_name, location):
 
   text.text((65,93), serial_number, font=fnt, fill=0)
   text.text((320,95), location, font=fnt, fill=0)
+  text.text((660,10), "J", font=fnt, fill=0)
+  text.text((660,45), "M", font=fnt, fill=0)
+  text.text((660,80), "W", font=fnt, fill=0)
 
   return label
 
@@ -210,7 +213,7 @@ def printLabel(image):
   from brother_ql.conversion import convert
   from brother_ql.backends.helpers import send
 
-  send_to_printer = True
+  send_to_printer = False
 
   if send_to_printer:
     backend = 'pyusb'
@@ -396,7 +399,10 @@ def stocktake():
     click.echo("There seems to be a problem talking to the database...")
 
   for row in response:
-    requests.put('http://' + hostport + '/api/container/serial/' + row['serial_number'] + '?location=Missing&temp=false')
+    try:
+      requests.put('http://' + hostport + '/api/container/serial/' + row['serial_number'] + '?location=Missing&temp=false')
+    except:
+      click.echo("There seems to be a problem talking to the database...")
 
   serial_number = ''
   serial_numbers = []
@@ -404,7 +410,10 @@ def stocktake():
     serial_number = click.prompt("Enter serial number ('quit' to exit stocktake mode)")
 
     if (serial_number not in serial_numbers) and (serial_number != 'quit'):
-      response = requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false').json()
+      try:
+        response = requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false').json()
+      except:
+        click.echo("There seems to be a problem talking to the database...")
       click.echo(response[0]['chemical']['name_fulltext'])
     else:
       click.echo("Chemical already scanned!")
