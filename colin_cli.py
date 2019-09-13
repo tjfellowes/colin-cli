@@ -390,20 +390,27 @@ def stocktake():
   click.clear()
   click.echo("Stocktake mode allows you to specify a location, then scan the chemicals in that location. All chemicals that were previously in that location will be marked as lost.")
   location = click.prompt('Please enter the location to stocktake')
-  response = requests.get('http://' + hostport + '/api/container/location/' + location).json()
+  try:
+    response = requests.get('http://' + hostport + '/api/container/location/' + location).json()
+  except:
+    click.echo("There seems to be a problem talking to the database...")
 
   for row in response:
     requests.put('http://' + hostport + '/api/container/serial/' + row['serial_number'] + '?location=Missing&temp=false')
 
   serial_number = ''
+  serial_numbers = []
   while serial_number != 'quit':
     serial_number = click.prompt("Enter serial number ('quit' to exit stocktake mode)")
-    response = requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false').json()
-    click.echo(response[0]['chemical']['name_fulltext'])
-  click.echo("Quitting stocktake mode...")
-  time.sleep(1)
 
-  response = requests.get('http://' + hostport + '/api/container/location/Missing').json()
+    if (serial_number not in serial_numbers) and (serial_number != 'quit'):
+      response = requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false').json()
+      click.echo(response[0]['chemical']['name_fulltext'])
+    else:
+      click.echo("Chemical already scanned!")
+    serial_numbers.append(serial_number)
+
+  '''response = requests.get('http://' + hostport + '/api/container/location/Missing').json()
   t = PrettyTable()
   t.field_names = ["Name"]
   for row in response:
@@ -414,7 +421,7 @@ def stocktake():
   if click.confirm("These chemicals are missing. Delete them?"):
     for row in response:
       requests.delete('http://' + hostport + '/api/container/serial/' + row['serial_number'])
-  click.clear()
+  click.clear()'''
   pass
 
 @click.command()
