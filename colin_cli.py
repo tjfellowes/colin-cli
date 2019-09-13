@@ -452,7 +452,7 @@ def colin():
       if c == '\x7f':
         query = query[:-1]
       elif c == '\x08':
-        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + T: Connect to a different CoLIn server')
+        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + O: Add a code for a location, CTRL + T: Connect to a different CoLIn server')
       elif c == '\x0e':
         createChemical()
       elif c == '\x12':
@@ -495,26 +495,27 @@ def colin():
       elif query[-1:] == '\r' and len(query) > 2:
         try:
           response = requests.get('http://' + hostport + '/api/container/search/' + query[:-1] + '?live=false').json()
-          t = PrettyTable()
-          t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location", "Supplier"]
-          for row in response:
-            parent_loc = str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', ''))
-            cont_loc = str(row['container_location'][-1].get('location', {}).get('name', ''))
-            location = ' '.join([parent_loc, cont_loc])
-            t.add_row([
-              row['serial_number'],
-              row['chemical']['cas'],
-              row['chemical']['prefix'] + row['chemical']['name'][0:45],
-              row['chemical'].get('dg_class', {}).get('description', ''),
-              #'{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
-              ureg(str(row['container_size']) + ' ' + str(row['size_unit'])),
-              location,
-              row.get('supplier', {}).get('name', '')
-            ])
-          click.echo(t)
-          click.pause()
         except:
-          pass
+          click.echo("There seems to be a problem talking to the database...")
+        t = PrettyTable()
+        t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location", "Supplier"]
+        for row in response:
+          parent_loc = str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', ''))
+          cont_loc = str(row['container_location'][-1].get('location', {}).get('name', ''))
+          location = ' '.join([parent_loc, cont_loc])
+          t.add_row([
+            row['serial_number'],
+            row['chemical']['cas'],
+            row['chemical']['prefix'] + row['chemical']['name'][0:45],
+            row['chemical'].get('dg_class', {}).get('description', ''),
+            #'{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
+            ureg(str(row['container_size']) + ' ' + str(row['size_unit'])),
+            location,
+            row.get('supplier', {}).get('name', '')
+          ])
+        click.echo(t)
+        click.pause()
+
 
 if __name__ == '__main__':
     colin()
