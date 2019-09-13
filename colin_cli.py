@@ -213,7 +213,7 @@ def printLabel(image):
   from brother_ql.conversion import convert
   from brother_ql.backends.helpers import send
 
-  send_to_printer = False
+  send_to_printer = True
 
   if send_to_printer:
     backend = 'pyusb'
