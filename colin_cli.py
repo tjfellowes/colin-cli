@@ -412,12 +412,12 @@ def stocktake():
     if (serial_number not in serial_numbers) and (serial_number != 'quit'):
       try:
         response = requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?location=' + location + '&temp=false').json()
+        click.echo(response[0]['chemical']['name_fulltext'])
+        serial_numbers.append(serial_number)
       except:
         click.echo("There seems to be a problem talking to the database...")
-      click.echo(response[0]['chemical']['name_fulltext'])
     else:
       click.echo("Chemical already scanned!")
-    serial_numbers.append(serial_number)
 
   '''response = requests.get('http://' + hostport + '/api/container/location/Missing').json()
   t = PrettyTable()
