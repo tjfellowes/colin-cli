@@ -433,6 +433,27 @@ def stocktake():
   click.clear()'''
   pass
 
+def locationHistory():
+  click.clear()
+  serial_number = click.prompt('Please enter the serial number of the chemical')
+  try:
+    response = requests.get('http://' + hostport + '/api/container/serial/' + serial_number).json()
+  except:
+    pass
+  t = PrettyTable()
+  t.field_names = ["Date ", "Location"]
+  for row in response[0]['container_location']:
+    parent_loc = str(row.get('location', {}).get('parent', {}).get('name', ''))
+    cont_loc = str(row.get('location', {}).get('name', ''))
+    location = ' '.join([parent_loc, cont_loc])
+    t.add_row([
+    row['updated_at'],
+    location
+    ])
+  click.echo(t)
+  click.prompt("")
+  click.clear()
+
 @click.command()
 def colin():
 
@@ -452,7 +473,7 @@ def colin():
       if c == '\x7f':
         query = query[:-1]
       elif c == '\x08':
-        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + O: Add a code for a location, CTRL + T: Connect to a different CoLIn server')
+        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + O: Add a code for a location, CTRIL + I: View location history, CTRL + T: Connect to a different CoLIn server')
       elif c == '\x0e':
         createChemical()
       elif c == '\x12':
@@ -464,6 +485,9 @@ def colin():
       elif c == '\x14':
         #CTRL T
         setHost()
+      elif c == '\x09':
+        #CTRL I
+        locationHistory()
       elif c == '\x0f':
         #CTRL O
         codeLocation()
