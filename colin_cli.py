@@ -279,13 +279,14 @@ def createChemical():
   container_size_string = click.prompt('What is the container size?')
   location = click.prompt('Where will this chemical be stored?')
   supplier = click.prompt('Who is the supplier of this chemical?')
+  description = click.prompt('Any description for this container? (e.g. concentration, solvent, form)')
   serial_number = click.prompt('The serial number for this container is', default = str(uuid.uuid1().int)[:12])
 
   container_size = str(ureg(container_size_string).magnitude)
   size_unit = str(ureg(container_size_string).units)
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier)
+    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier) + "&description=" + str(description)
     try:
       requests.post(url)
     except:
@@ -454,6 +455,16 @@ def locationHistory():
   click.prompt("")
   click.clear()
 
+def changeDescription():
+  click.clear()
+  serial_number = click.prompt('Please enter the serial number of the chemical to be updated')
+  description = click.prompt('Please enter the new description', default='')
+  try:
+    requests.put('http://' + hostport + '/api/container/serial/' + serial_number + '?description=' + description)
+  except:
+    click.echo('There seems to be a problem talking to the database...')
+  click.clear()
+
 @click.command()
 def colin():
 
@@ -463,7 +474,6 @@ def colin():
   while True:
     click.clear()
     click.echo('👨🏻‍🔬 *sighhh* I am CoLIn, what chemical do you want? Enter a name, CAS or container number. CTRL + H for help.')
-    print(hostport)
     click.echo('\nSearch:')
     c = ''
     query = ''
@@ -473,7 +483,7 @@ def colin():
       if c == '\x7f':
         query = query[:-1]
       elif c == '\x08':
-        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + O: Add a code for a location, CTRIL + I: View location history, CTRL + T: Connect to a different CoLIn server')
+        click.echo('CTRL + N: Create new chemical, CTRL + R: Remove a chemical, CTRL + U: Update location, CTRL + P: Reprint label, CTRL + S: Stocktake, CTRL + O: Add a code for a location, CTRIL + I: View location history, CTRL + T: Connect to a different CoLIn server, CTRL + E: Change a container\'s description')
       elif c == '\x0e':
         createChemical()
       elif c == '\x12':
@@ -491,6 +501,9 @@ def colin():
       elif c == '\x0f':
         #CTRL O
         codeLocation()
+      elif c == '\x05':
+        #CTRL E
+        changeDescription()
       # elif c == '\x0c':
       #   reprintLabelByLoc()
       elif c == '\x13':
@@ -527,10 +540,13 @@ def colin():
           parent_loc = str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', ''))
           cont_loc = str(row['container_location'][-1].get('location', {}).get('name', ''))
           location = ' '.join([parent_loc, cont_loc])
+          name = row['chemical']['prefix'] + row['chemical']['name'][0:45]
+          if row['description']:
+           name = name + ' (' + row.get('description', '') + ')'
           t.add_row([
             row['serial_number'],
             row['chemical']['cas'],
-            row['chemical']['prefix'] + row['chemical']['name'][0:45],
+            name,
             row['chemical'].get('dg_class', {}).get('description', ''),
             #'{:~}'.format(ureg(str(row['container_size']) + ' ' + str(row['size_unit'])).to_compact()),
             ureg(str(row['container_size']) + ' ' + str(row['size_unit'])),
