@@ -6,8 +6,8 @@ from prettytable import PrettyTable
 from pint import UnitRegistry
 from PIL import Image,ImageDraw,ImageFont
 
-host = 'localhost'
-port = '9292'
+host = 'colin-uom.herokuapp.com'
+port = '80'
 
 hostport = host + ':' + port
 
