@@ -279,7 +279,7 @@ def createChemical():
   container_size_string = click.prompt('What is the container size?')
   location = click.prompt('Where will this chemical be stored?')
   supplier = click.prompt('Who is the supplier of this chemical?')
-  description = click.prompt('Any description for this container? (e.g. concentration, solvent, form)')
+  description = click.prompt('Any description for this container? (e.g. concentration, solvent, form)', default='')
   serial_number = click.prompt('The serial number for this container is', default = str(uuid.uuid1().int)[:12])
 
   container_size = str(ureg(container_size_string).magnitude)
