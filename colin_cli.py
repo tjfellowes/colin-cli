@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import os,io,click,requests,time,pint,uuid,barcode,textwrap
+import os,io,click,requests,time,pint,uuid,barcode,textwrap,urllib
 from prettytable import PrettyTable
 from pint import UnitRegistry
 from PIL import Image,ImageDraw,ImageFont
@@ -279,7 +279,7 @@ def createChemical():
   container_size_string = click.prompt('What is the container size?')
   location = click.prompt('Where will this chemical be stored?')
   supplier = click.prompt('Who is the supplier of this chemical?')
-  description = click.prompt('Any description for this container? (e.g. concentration, solvent, form)', default='')
+  description = urllib.parse.quote(click.prompt('Any description for this container? (e.g. concentration, solvent, form)', default=''))
   serial_number = click.prompt('The serial number for this container is', default = str(uuid.uuid1().int)[:12])
 
   container_size = str(ureg(container_size_string).magnitude)
