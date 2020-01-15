@@ -329,7 +329,7 @@ def updateLocation():
   except:
     click.echo('There seems to be a problem talking to the database...')
   fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
-  location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
+  location = ' '.join([str(response[0]['storage_location'].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['storage_location'].get('location', {}).get('name', ''))])
   labels = [createLabel(serial_number,fulltext_name,location)]
   printLabel(labels)
   click.echo("Location updated!")
@@ -347,7 +347,7 @@ def reprintLabel():
     click.echo('There seems to be a problem talking to the database...')
 
   fulltext_name = response[0]['chemical']['prefix'] + response[0]['chemical']['name']
-  location = ' '.join([str(response[0]['container_location'][-1].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['container_location'][-1].get('location', {}).get('name', ''))])
+  location = ' '.join([str(response[0]['storage_location'].get('location', {}).get('parent', {}).get('name', '')), str(response[0]['storage_location'].get('location', {}).get('name', ''))])
   labels = [createLabel(serial_number,fulltext_name,location)]
 
   printLabel(labels)
@@ -537,8 +537,8 @@ def colin():
         t = PrettyTable()
         t.field_names = ["Serial number", "CAS number", "Name", "DG Class", "Size", "Location", "Supplier"]
         for row in response:
-          parent_loc = str(row['container_location'][-1].get('location', {}).get('parent', {}).get('name', ''))
-          cont_loc = str(row['container_location'][-1].get('location', {}).get('name', ''))
+          parent_loc = str(row['current_location'].get('location', {}).get('parent', {}).get('name', ''))
+          cont_loc = str(row['current_location'].get('location', {}).get('name', ''))
           location = ' '.join([parent_loc, cont_loc])
           name = row['chemical']['prefix'] + row['chemical']['name'][0:45]
           if row['description']:
