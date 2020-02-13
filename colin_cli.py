@@ -108,7 +108,7 @@ def createChemical():
   size_unit = str(ureg(container_size_string).units)
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class=" + str(dg_class[0]) + "&dg_class_2=" + str(dg_class[1]) + "dg_class_3=" + str(dg_class[2]) + "&schedule=" + str(schedule) + "&packing_group=" + str(packing_group) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier) + "&description=" + str(description)
+    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class=" + str(dg_class[0]) + "&dg_class_2=" + str(dg_class[1]) + "&dg_class_3=" + str(dg_class[2]) + "&schedule=" + str(schedule) + "&packing_group=" + str(packing_group) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier) + "&description=" + str(description)
     try:
       requests.post(url)
     except:
