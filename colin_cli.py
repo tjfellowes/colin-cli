@@ -13,173 +13,6 @@ hostport = host + ':' + port
 
 ureg = UnitRegistry()
 
-pg = {
-  "I": "1",
-  "II": "2",
-  "III": "3",
-  "-": "",
-  "": ""
-}
-
-sched = {
-  "1": "",
-  "2": "2",
-  "4": "3",
-  "6": "6",
-  "7": "7",
-  "-": "",
-  "": ""
-}
-
-dg = {
-  "2.1": "9",
-  "3": "12",
-  "4.1": "14",
-  "4.2": "15",
-  "4.3": "16",
-  "5.1": "18",
-  "5.2": "19",
-  "6": "20",
-  "6.1": "21",
-  "8": "24",
-  "9": "25",
-  "-": "",
-  "": ""
-}
-
-loc = {
-  "Harmful H1": "2",
-  "Harmful H2": "3",
-  "Harmful H3": "4",
-  "Harmful H4": "5",
-  "Harmful H5": "6",
-  "Harmful H6": "7",
-  "Harmful H7": "8",
-  "Harmful H8": "9",
-  "Harmful H9": "10",
-  "Harmful H10": "11",
-  "Harmful H11": "12",
-  "Harmful H12": "13",
-  "Harmful H13": "14",
-  "Harmful H14": "15",
-  "Harmful H15": "16",
-  "Harmful H16": "17",
-  "Harmful H17": "18",
-  "Harmful H18": "19",
-  "Harmful H19": "20",
-  "Harmful H20": "21",
-  "Harmful H21": "22",
-  "Harmful H22": "23",
-  "Harmful H23": "24",
-  "Harmful H24": "25",
-  "Harmful H25": "26",
-  "Harmful H26": "27",
-  "Harmful H27": "28",
-  "Harmful Desc": "29",
-  "Toxic TS1": "31",
-  "Toxic TS2": "32",
-  "Toxic TS3": "33",
-  "Toxic TM1": "34",
-  "Toxic TM2": "35",
-  "Toxic TM3": "36",
-  "Toxic TM4": "37",
-  "Toxic TM5": "38",
-  "Toxic TM6": "39",
-  "Toxic TL1": "40",
-  "Toxic TL2": "41",
-  "Toxics TL2": "41",
-  "Toxic TL3": "42",
-  "Toxic TL4": "43",
-  "Toxic TXL": "44",
-  "Toxic dessicator": "45",
-  "Corrosive 1": "47",
-  "Corrosive 2": "48",
-  "Corrosive Acid 1": "47",
-  "Corrosive Acid 2": "48",
-  "Corrosive acid 1": "47",
-  "Corrosive acid 2": "48",
-  "Corrosive Basic 1": "49",
-  "Corrosive Basic 2": "50",
-  "Corrosive Basic 3": "51",
-  "Corrosive Basic 4": "52",
-  "Corrosive basic 1": "49",
-  "Corrosive basic 2": "50",
-  "Corrosive basic 3": "51",
-  "Corrosive basic 4": "52",
-  "Corrosive Desc": "53",
-  "Fridge Bottom draw": "55",
-  "Fridge (bottom)": "55",
-  "Fridge door": "56",
-  "Fridge Door": "56",
-  "Fridge 3 Door": "56",
-  "Fridge S1": "57",
-  "Fridge S1 B1": "58",
-  "Fridge S1 B3": "59",
-  "Fridge S2 B1": "60",
-  "Fridge S2 B2": "61",
-  "Fridge S3": "62",
-  "Fridge S3 B1": "63",
-  "Fridge S4": "64",
-  "Fridge S4 B1": "65",
-  "Freezer 1 S1": "67",
-  "Freezer 1 S1 B1": "68",
-  "Freezer 1 S1B1": "68",
-  "Oxidant Freezer": "68",
-  "Freezer 1 S2 B1": "69",
-  "Freezer 1 S2 B2": "70",
-  "Freezer 1 S2 B3": "71",
-  "Freezer 1 S3 B1": "72",
-  "Freezer 1 S4 B1": "73",
-  "Freezer 1 S4 B2": "74",
-  "Freezer 1 S5 B1": "75",
-  "Freezer 2 (Corrosive)": "76",
-  "Middle freezer": "76",
-  "Freezer 3 (Flammable)": "77",
-  "Flammable liquids L": "79",
-  "Flammable liquids S": "80",
-  "Flammable Liquids L": "79",
-  "Flammable Liquids S": "80",
-  "Flammable liquid L": "79",
-  "Flammable liquid S": "80",
-  "Flammable Liquid L": "79",
-  "Flammable Liquid S": "80",
-  "Flammable Solids": "81",
-  "Flammable Solids Desc 1": "82",
-  "Flammable Solids Desc 2": "83",
-  "Flammable Solid": "81",
-  "Flammable Solid Desc 1": "82",
-  "Flammable Solid Desc 2": "83",
-  "Poison Draw No. 1": "85",
-  "Poisons draw No.1": "85",
-  "Poisons draw No.2": "86",
-  "Poisons draw No.3": "87",
-  "Poisons draw no.3": "87",
-  "Bench 1": "89",
-  "Bench 2": "90",
-  "Bench 3": "91",
-  "Bench 4": "92",
-  "Bench 5": "93",
-  "Bench 6": "94",
-  "Bench 7": "95",
-  "Bench 8": "96",
-  "Bench 9": "97",
-  "Bench 10": "98",
-  "Bench 11": "99",
-  "Bench 12": "100",
-  "Bench 13": "101",
-  "Bench 14": "102",
-  "Bench 14 desc": "102",
-  "Dangerous When Wet": "103",
-  "Oxidizing agents": "104",
-  "Oxidants": "104",
-  "Non-hazardous": "105",
-  "Under Sinks": "105",
-  "various": "105",
-  "Non-Flammable Solvents": "109",
-  "Chromatog/filtration aids": "106",
-  "Deuterates desc": "107",
-  "Sieves/drying agents": "108",
-}
 
 def createLabel(serial_number, fulltext_name, location):
   fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 25)
@@ -247,33 +80,21 @@ def createChemical():
     prefix = chemical[0].get('prefix','')
     name = chemical[0]['name']
     haz_substance = chemical[0]['haz_substance']
-    dg_class_id = chemical[0].get('dg_class_id','')
-    dg_class_2_id = chemical[0].get('dg_class_2_id','')
-    dg_class_3_id = chemical[0].get('dg_class_3_id','')
-    packing_group_id = chemical[0].get('packing_group_id','')
+    dg_class = chemical[0].get('dg_class',{}).get('number','')
+    dg_class_2 = chemical[0].get('dg_class_2',{}).get('number','')
+    dg_class_3 = chemical[0].get('dg_class_3',{}).get('number','')
+    packing_group = chemical[0].get('packing_group',{}).get('name','')
     un_number = chemical[0].get('un_number','')
-    schedule_id = chemical[0].get('schedule_id','')
+    schedule = chemical[0].get('schedule',{}).get('number','')
   elif response.status_code == 404:
     click.echo("Looks like we don't have any of that. We'll need some more information")
     prefix = click.prompt('What is the prefix of the chemical (if applicable)', default='')
     name = click.prompt('What is the name of the chemical?')
     haz_substance = click.prompt('Is this chemical a hazardous substance? (y/n)')
     dg_class = click.prompt('What is the dangerous goods class of the chemical? Subclasses can be indicated after a comma e.g 3, 6.1', default='').split(', ') + ['','','']
-    while any(dg_class_element not in dg for dg_class_element in dg_class):
-      dg_class = click.prompt("I am old and hard of hearing. Try entering that again").split(', ') + ['','','']
     packing_group = click.prompt('What is the packing group number of the chemical? (I, II, III)', default='')
-    while packing_group not in pg:
-      packing_group = click.prompt("I am old and hard of hearing. Try entering that again")
     un_number = click.prompt('What is the UN number of the chemical?', default='')
     schedule = click.prompt('What is the poisons schedule of this chemical?', default='')
-    while schedule not in sched:
-      schedule = click.prompt("I am old and hard of hearing. Try entering that again")
-
-    dg_class_id = dg[dg_class[0]]
-    dg_class_2_id = dg[dg_class[1]]
-    dg_class_3_id = dg[dg_class[2]]
-    packing_group_id = pg[packing_group]
-    schedule_id = sched[schedule]
 
 
   container_size_string = click.prompt('What is the container size?')
@@ -286,7 +107,7 @@ def createChemical():
   size_unit = str(ureg(container_size_string).units)
 
   if click.confirm('Create this chemical?'):
-    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class_id=" + str(dg_class_id) + "&dg_class_2_id=" + str(dg_class_2_id) + "dg_class_3_id=" + str(dg_class_3_id) + "&schedule_id=" + str(schedule_id) + "packing_group_id=" + str(packing_group_id) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier) + "&description=" + str(description)
+    url = "http://" + hostport + "/api/container/serial/" + str(serial_number) +"?cas=" + str(cas) + "&prefix=" + str(prefix) + "&name=" + str(name) + "&dg_class=" + str(dg_class[0]) + "&dg_class_2=" + str(dg_class[1]) + "dg_class_3=" + str(dg_class[2]) + "&schedule=" + str(schedule) + "packing_group=" + str(packing_group) + "&un_number=" + str(un_number) + "&haz_substance=" + str(haz_substance) + "&container_size=" + str(container_size) + "&size_unit=" + str(size_unit) + "&supplier=" + str(supplier) + "&location=" + str(location) + "&supplier=" + str(supplier) + "&description=" + str(description)
     try:
       requests.post(url)
     except:
