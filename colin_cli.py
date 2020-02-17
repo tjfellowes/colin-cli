@@ -41,12 +41,23 @@ def createLabel(serial_number, fulltext_name, location):
 
   return label
 
+def createTextLabel(name):
+  fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 50)
+
+  label = Image.new('1', (696,120), color=1)
+
+  text = ImageDraw.Draw(label)
+
+  text.text((65,93), name, font=fnt, fill=0)
+
+  return label
+
 def printLabel(image):
   from brother_ql.raster import BrotherQLRaster
   from brother_ql.conversion import convert
   from brother_ql.backends.helpers import send
 
-  send_to_printer = True
+  send_to_printer = False
 
   if send_to_printer:
     backend = 'pyusb'
@@ -330,6 +341,8 @@ def colin():
       #   reprintLabelByLoc()
       elif c == '\x13':
         stocktake()
+      elif c == '\x11':
+        printLabel(createTextLabel(query))
       elif c in ['\x1b[A', '\x1b[B', '\x1b[C', '\x1b[D']:
         pass
       else:
