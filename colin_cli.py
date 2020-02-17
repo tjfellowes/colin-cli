@@ -48,13 +48,9 @@ def createTextLabel(name):
 
   text = ImageDraw.Draw(label)
 
-<<<<<<< HEAD
   width, height = fnt.getsize(name)
 
   text.text((696/2-width/2,0), name, font=fnt, fill=0)
-=======
-  text.text((0,0), name, font=fnt, fill=0)
->>>>>>> 0fe615d4530036d6a3b455a0ccfa050efdff606c
 
   return label
 
