@@ -48,9 +48,13 @@ def createTextLabel(name):
 
   text = ImageDraw.Draw(label)
 
+<<<<<<< HEAD
   width, height = fnt.getsize(name)
 
   text.text((696/2-width/2,0), name, font=fnt, fill=0)
+=======
+  text.text((0,0), name, font=fnt, fill=0)
+>>>>>>> 0fe615d4530036d6a3b455a0ccfa050efdff606c
 
   return label
 
@@ -59,7 +63,7 @@ def printLabel(image):
   from brother_ql.conversion import convert
   from brother_ql.backends.helpers import send
 
-  send_to_printer = False
+  send_to_printer = True
 
   if send_to_printer:
     backend = 'pyusb'
@@ -343,8 +347,8 @@ def colin():
       #   reprintLabelByLoc()
       elif c == '\x13':
         stocktake()
-      elif c == '\x11':
-        printLabel(createTextLabel(query))
+      elif c == '\x0B':
+        printLabel([createTextLabel(query)])
       elif c in ['\x1b[A', '\x1b[B', '\x1b[C', '\x1b[D']:
         pass
       else:
