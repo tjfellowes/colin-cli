@@ -42,13 +42,15 @@ def createLabel(serial_number, fulltext_name, location):
   return label
 
 def createTextLabel(name):
-  fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 50)
+  fnt = ImageFont.truetype('/Library/Fonts/Arial.ttf', 120)
 
   label = Image.new('1', (696,120), color=1)
 
   text = ImageDraw.Draw(label)
 
-  text.text((65,93), name, font=fnt, fill=0)
+  width, height = fnt.getsize(name)
+
+  text.text((696/2-width/2,0), name, font=fnt, fill=0)
 
   return label
 
